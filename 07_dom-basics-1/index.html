@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timer</title>
+  <script defer src="./timer.js"></script>
+  <script defer src="./dom-project.js"></script>
+</head>
+
+<style>
+  .container {
+    margin: 0 auto;
+    max-width: 700px;
+  }
+
+  .timer-content {
+    margin: 0 auto 100px;
+    height: 350px;
+    width: 350px;
+    padding: 100px;
+    background-color: blueviolet;
+    border-radius: 50%;
+  }
+
+  .flex {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .timer {
+    width: 100%;
+    min-height: 175px;
+    margin-bottom: 100px;
+    text-align: center;
+    font-size: 150px;
+  }
+
+  .number-inp,
+  .start-btn {
+    box-sizing: border-box;
+    height: 50px;
+    width: 160px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+</style>
+
+<body>
+  <div class="container">
+    <div class="timer-content">
+      <div class="timer" id="timer">0</div>
+      <div class="flex">
+        <input class="number-inp" id="number-inp" placeholder="Введите время, сек" min="0" type="number" required>
+        <button class="start-btn" id="start-btn">Запустить таймер</button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
