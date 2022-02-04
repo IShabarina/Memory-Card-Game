@@ -149,6 +149,16 @@
       };
       //-HW8
 
+      todoItem.doneButton.addEventListener('click', function () {
+        todoItem.item.classList.toggle('list-group-item-success');
+      });
+
+      todoItem.deleteButton.addEventListener('click', function () {
+        if (confirm('Вы уверены?')) {
+          todoItem.item.remove();
+        }
+      });
+
       //обнуляем значение в поле, чтобы не пришлось стирать его вручную
       todoItemForm.input.value = '';
       //HW8 делаем поле неактивным до ввода текста
@@ -184,16 +194,15 @@
     for (let i = 0; i < doneButtonList.length; i++) {
       doneButtonList[i].addEventListener('click', function () {
         doneButtonList[i].classList.toggle('list-group-item-success');
-        console.log('doneButtonList[i]', doneButtonList[i]);
         checkDoneItems(key);
       })
     };
 
-    todoItem.deleteButton.addEventListener('click', function () {
-      if (confirm('Вы уверены?')) {
-        todoItem.item.remove();
-      }
-    });
+    // todoItem.deleteButton.addEventListener('click', function () {
+    //   if (confirm('Вы уверены?')) {
+    //     todoItem.item.remove();
+    //   }
+    // });
     //-HW8
   }
 
