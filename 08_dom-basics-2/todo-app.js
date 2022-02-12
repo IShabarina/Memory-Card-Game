@@ -41,7 +41,6 @@
     return list;
   }
 
-
   function createTodoItem(name, done = false) {
     let item = document.createElement('li');
     //кнопки помещаем в элемент, который стилизует их в одной группе
@@ -51,15 +50,10 @@
     //устанавливем стили для элемента списка, а так же для размещения кнопок
     //в его правой части с помощью flex
     item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-
-    //HW8
-    //обновляем выполненные дела из LocalStorage
-    //НЕ РАБОТАЕТ((
+    //HW8 //при загрузки выполненных дел из LocalStorage добавляем доп класс
     if (done == true) {
       item.classList.add('list-group-item-success');
-    };
-    //-HW8
-
+    };//-HW8
     item.textContent = name;
 
     buttonGroup.classList.add('btn-group', 'btn-group-sm');
@@ -82,7 +76,6 @@
     };
   }
 
-
   function createTodoApp(container, title = 'Список дел', key) {
 
     let todoAppTitle = createAppTitle(title);
@@ -93,50 +86,79 @@
     container.append(todoItemForm.form);
     container.append(todoList);
 
-    //HW8
-    // загружаем и создаем список дел из LocalStorage
-    //если он существует и задан 3й параметр функции ...
-    if (typeof key !== undefined) {
-      let listArrayStoragedItems = JSON.parse(localStorage.getItem(key));
-      if (listArrayStoragedItems != null) {
-        for (let j = 0; j < listArrayStoragedItems.length; ++j) {
-          let todoItem = createTodoItem(listArrayStoragedItems[j].name, listArrayStoragedItems[j].done);
-          todoList.append(todoItem.item);
-        }
-      }
-    } else {
-      //если 3й аргумент функции createTodoApp не задан,
-      //для создания списка дел в LocalStorage берем ключ равный названию Title
-      //НЕ РАБОТАЕТ(( key = undefined...
+    if (key == undefined) { //если key массива LocalStorage не задан 3-им аргуметом, присваиваем key равное title
       key = title;
-    }
-    //HW8
+    };
 
-    todoItemForm.input.addEventListener('input', function () {
+    todoItemForm.input.addEventListener('input', function () { //разблокируем кнопку Добавить дело при вводе текста
       todoItemForm.button.removeAttribute('disabled');
     });
 
+    let arrayStoragedItems = JSON.parse(localStorage.getItem(key)); //null
 
-    //браузер создает событие submit на форме по нажатию на Enter или на кпопку создания дела
-    todoItemForm.form.addEventListener('submit', function (e) {
-      //чтобы предотвратить стандартные действия браузера
-      //в данном случае, чтобы страница не перезагружалась при отправке формы
-      e.preventDefault();
-      //игнорируем создание элемента, если пользователь ничего не ввел в поле
-      if (!todoItemForm.input.value) {
+    if (arrayStoragedItems != null) { //если данные в LocalStorage существуют создаем Дела в DOM
+      for (let j = 0; j < arrayStoragedItems.length; ++j) {
+        let todoItem = createTodoItem(arrayStoragedItems[j].name, arrayStoragedItems[j].done);
+        todoList.append(todoItem.item);
+
+        todoItem.doneButton.addEventListener('click', function () { //обработчик Готово для списка дел из LocalStorage
+          let arrayFiltredDoneItems = [];
+          let arrayStoragedItems = JSON.parse(localStorage.getItem(key)); //как не дублировать???
+
+          todoItem.item.classList.toggle('list-group-item-success');
+          let listDoneItems = document.querySelectorAll('li.list-group-item-success');
+          var arrayOfNamesDoneItems = [].map.call(listDoneItems, function (obj) { //проходимся по массиву объектов, собранных с помощью querySelectorAll
+            return obj.textContent.replace('ГотовоУдалить', ''); //и получаем массив Дел без содержания "ГотовоУдалить"
+          });
+
+          for (let storagedItem of arrayStoragedItems) {
+            if (arrayOfNamesDoneItems.length == 0) {
+              storagedItem.done = false;
+            } else {
+              for (let i = 0; i < arrayOfNamesDoneItems.length; i++) {
+                if (storagedItem.name == arrayOfNamesDoneItems[i]) {
+                  storagedItem.done = true;
+                  break;
+                }
+                else {
+                  storagedItem.done = false;
+                }
+              }
+            }
+            arrayFiltredDoneItems.push(storagedItem);
+          }
+
+          localStorage.setItem(key, JSON.stringify(arrayFiltredDoneItems));
+          arrayFiltredDoneItems = [];//нужно обнулять???
+        });
+
+
+        todoItem.deleteButton.addEventListener('click', function () { //обработчик Удалить для списка дел из LocalStorage
+          if (confirm('Вы уверены?')) {
+            let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
+            let arrayFiltredDeleteItems = arrayStoragedItems.filter(function (e) {
+              return e.name != todoItem.item.textContent.replace('ГотовоУдалить', '');
+            });
+            localStorage.setItem(key, JSON.stringify(arrayFiltredDeleteItems));
+            todoItem.item.remove();
+          }
+        });
+      }
+    };
+
+    todoItemForm.form.addEventListener('submit', function (e) { //создаем дело по нажатию на Enter или на кпопку создания дела
+      e.preventDefault(); //чтобы страница не перезагружалась при отправке формы
+      if (!todoItemForm.input.value) { //игнорируем создание элемента, если ничего не введено в поле
         return;
       }
-      //создаем и добавляем в список новое дело с названием из поля для ввода
-      let todoItem = createTodoItem(todoItemForm.input.value);
+      let todoItem = createTodoItem(todoItemForm.input.value);//создаем и добавляем в список Дело с названием из поля для ввода
       todoList.append(todoItem.item);
 
-      //HW8
-      //добавляем созданное новое дело в массив объектов LocalStorage
-      updateStorageTodoList(key);
-      //функция создания и обновления массива объектов в LocalStorage
-      function updateStorageTodoList(key) {
-        let listArrayStoragedItems = JSON.parse(localStorage.getItem(key));
-        if (listArrayStoragedItems == null) listArrayStoragedItems = [];
+      arrayStoragedItems = getArrayLocalStoragedObjs(key); //добавляем созданное новое дело в массив объектов LocalStorage
+
+      function getArrayLocalStoragedObjs(keyArr) {
+        let arrayLocalStoragedObjs = JSON.parse(localStorage.getItem(key));
+        if (arrayLocalStoragedObjs == null) arrayLocalStoragedObjs = [];
         let itemName = todoItemForm.input.value;
         let itemDone = false;
         let itemObj = {
@@ -144,69 +166,64 @@
           "done": itemDone
         };
         localStorage.setItem("itemObj", JSON.stringify(itemObj));
-        listArrayStoragedItems.push(itemObj);
-        localStorage.setItem(key, JSON.stringify(listArrayStoragedItems));
+        arrayLocalStoragedObjs.push(itemObj);
+        localStorage.setItem(keyArr, JSON.stringify(arrayLocalStoragedObjs));
+        console.log(arrayLocalStoragedObjs);
+        return arrayLocalStoragedObjs;
       };
-      //-HW8
 
+      //обработчик события нажания Готово после создания нового дела
       todoItem.doneButton.addEventListener('click', function () {
+        let arrayFiltredDoneItems = [];
+        let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
+        console.log(arrayStoragedItems);
+
         todoItem.item.classList.toggle('list-group-item-success');
+        let listDoneItems = document.querySelectorAll('li.list-group-item-success'); //Nodelist li
+
+        var arrayOfNamesDoneItems = [].map.call(listDoneItems, function (obj) { //проходимся по массиву объектов, собранных с помощью querySelectorAll
+          return obj.textContent.replace('ГотовоУдалить', ''); //и получаем массив дел без содержания "ГотовоУдалить"
+        });
+
+        for (let storagedItem of arrayStoragedItems) {
+          if (arrayOfNamesDoneItems.length == 0) {
+            storagedItem.done = false;
+          } else {
+            for (let i = 0; i < arrayOfNamesDoneItems.length; i++) {
+              if (storagedItem.name == arrayOfNamesDoneItems[i]) {
+                storagedItem.done = true;
+                break;
+              }
+              else {
+                storagedItem.done = false;
+              }
+            }
+          }
+          arrayFiltredDoneItems.push(storagedItem);
+        }
+
+        localStorage.setItem(key, JSON.stringify(arrayFiltredDoneItems));
+        arrayFiltredDoneItems = [];//нужно обнулять???
       });
 
+      //обработчик события нажания Удалить после создания нового дела
       todoItem.deleteButton.addEventListener('click', function () {
         if (confirm('Вы уверены?')) {
+          let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
+          let arrayFiltredDeleteItems = arrayStoragedItems.filter(function (e) {
+            return e.name != todoItem.item.textContent.replace('ГотовоУдалить', '');
+          });
+          localStorage.setItem(key, JSON.stringify(arrayFiltredDeleteItems));
           todoItem.item.remove();
         }
       });
 
-      //обнуляем значение в поле, чтобы не пришлось стирать его вручную
-      todoItemForm.input.value = '';
-      //HW8 делаем поле неактивным до ввода текста
-      todoItemForm.button.setAttribute('disabled', true);
+      todoItemForm.input.value = '';//обнуляем значение в поле, чтобы не пришлось стирать его вручную
+      todoItemForm.button.setAttribute('disabled', true);//HW8 делаем поле неактивным до ввода текста
     });
 
-
-    //HW8
-    //функция проверки выполненных дел
-    //НЕ РАБОТАЕТ ((
-    function checkDoneItems(key) {
-      let listArrayStoragedItems = JSON.parse(localStorage.getItem(key));
-      if (listArrayStoragedItems != null) {
-        let listArrayDoneItems = [];
-        let listDoneItems = document.querySelectorAll('.list-group-item-success');
-        for (let i = 0; i < listDoneItems.length; i++) {
-          listArrayDoneItems.push(listDoneItems[i].textContent);
-        };
-
-        // let listArrayStoragedItems = JSON.parse(localStorage.getItem(todoAppTitle.textContent));
-        for (let j = 0; j < listArrayStoragedItems.length; ++j) {
-          for (let i = 0; i < listArrayDoneItems.length; i++) {
-            if (listArrayDoneItems[i].includes(listArrayStoragedItems[j].name)) {
-              listArrayStoragedItems[j].done = true;
-            }
-          }
-        }
-        localStorage.setItem(todoAppTitle.textContent, JSON.stringify(listArrayStoragedItems));
-      };
-    }
-
-    let doneButtonList = document.querySelectorAll('.btn-success');
-    for (let i = 0; i < doneButtonList.length; i++) {
-      doneButtonList[i].addEventListener('click', function () {
-        doneButtonList[i].classList.toggle('list-group-item-success');
-        checkDoneItems(key);
-      })
-    };
-
-    // todoItem.deleteButton.addEventListener('click', function () {
-    //   if (confirm('Вы уверены?')) {
-    //     todoItem.item.remove();
-    //   }
-    // });
-    //-HW8
   }
 
   window.createTodoApp = createTodoApp;
-
 })();
 
