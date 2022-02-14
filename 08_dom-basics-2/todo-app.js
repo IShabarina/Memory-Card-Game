@@ -76,7 +76,7 @@
     };
   }
 
-  function getArrayFiltredItems(key) {
+  function getArrayFiltredItems(key, todoItem) {
     let arrayFiltredDoneItems = [];
     let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
 
@@ -108,7 +108,7 @@
     arrayFiltredDoneItems = [];
   };
 
-  function removeDeletedItems(key) {
+  function removeDeletedItems(key, todoItem) {
     let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
     let arrayFiltredDeleteItems = arrayStoragedItems.filter(function (e) {
       return e.name != todoItem.item.textContent.replace('ГотовоУдалить', '');
@@ -142,11 +142,11 @@
         let todoItem = createTodoItem(arrayStoragedItems[j].name, arrayStoragedItems[j].done);
         todoList.append(todoItem.item);
 
-        todoItem.doneButton.addEventListener('click', getArrayFiltredItems(key));//обработчик Готово для списка дел из LocalStorage
+        todoItem.doneButton.addEventListener('click', () => getArrayFiltredItems(key, todoItem));//обработчик Готово для списка дел из LocalStorage
 
         todoItem.deleteButton.addEventListener('click', function () { //обработчик Удалить для списка дел из LocalStorage
           if (confirm('Вы уверены?')) {
-            removeDeletedItems(key)
+            removeDeletedItems(key, todoItem);
           }
         });
       }
@@ -179,12 +179,12 @@
       };
 
       //обработчик события нажания Готово после создания нового дела
-      todoItem.doneButton.addEventListener('click', getArrayFiltredItems(key));
+      todoItem.doneButton.addEventListener('click', () => getArrayFiltredItems(key, todoItem));
 
       //обработчик события нажания Удалить после создания нового дела
       todoItem.deleteButton.addEventListener('click', function () {
         if (confirm('Вы уверены?')) {
-          removeDeletedItems(key);
+          removeDeletedItems(key, todoItem);
         }
       });
 
