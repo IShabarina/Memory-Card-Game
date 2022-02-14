@@ -76,6 +76,47 @@
     };
   }
 
+  function getArrayFiltredItems(key) {
+    let arrayFiltredDoneItems = [];
+    let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
+
+    todoItem.item.classList.toggle('list-group-item-success');
+    let listDoneItems = document.querySelectorAll('li.list-group-item-success');
+    var arrayOfNamesDoneItems = [].map.call(listDoneItems, function (obj) { //проходимся по массиву объектов, собранных с помощью querySelectorAll
+      return obj.textContent.replace('ГотовоУдалить', ''); //и получаем массив Дел без содержания "ГотовоУдалить"
+    });
+
+    for (let storagedItem of arrayStoragedItems) {
+      if (arrayOfNamesDoneItems.length == 0) {
+        storagedItem.done = false;
+      } else {
+        for (let i = 0; i < arrayOfNamesDoneItems.length; i++) {
+          if (storagedItem.name == arrayOfNamesDoneItems[i]) {
+            storagedItem.done = true;
+            break;
+          }
+          else {
+            storagedItem.done = false;
+          }
+        }
+      }
+      arrayFiltredDoneItems.push(storagedItem);
+      console.log(arrayFiltredDoneItems);
+    }
+
+    localStorage.setItem(key, JSON.stringify(arrayFiltredDoneItems));
+    arrayFiltredDoneItems = [];
+  };
+
+  function removeDeletedItems(key) {
+    let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
+    let arrayFiltredDeleteItems = arrayStoragedItems.filter(function (e) {
+      return e.name != todoItem.item.textContent.replace('ГотовоУдалить', '');
+    });
+    localStorage.setItem(key, JSON.stringify(arrayFiltredDeleteItems));
+    todoItem.item.remove();
+  };
+
   function createTodoApp(container, title = 'Список дел', key) {
 
     let todoAppTitle = createAppTitle(title);
@@ -101,46 +142,11 @@
         let todoItem = createTodoItem(arrayStoragedItems[j].name, arrayStoragedItems[j].done);
         todoList.append(todoItem.item);
 
-        todoItem.doneButton.addEventListener('click', function () { //обработчик Готово для списка дел из LocalStorage
-          let arrayFiltredDoneItems = [];
-          let arrayStoragedItems = JSON.parse(localStorage.getItem(key)); //как не дублировать???
-
-          todoItem.item.classList.toggle('list-group-item-success');
-          let listDoneItems = document.querySelectorAll('li.list-group-item-success');
-          var arrayOfNamesDoneItems = [].map.call(listDoneItems, function (obj) { //проходимся по массиву объектов, собранных с помощью querySelectorAll
-            return obj.textContent.replace('ГотовоУдалить', ''); //и получаем массив Дел без содержания "ГотовоУдалить"
-          });
-
-          for (let storagedItem of arrayStoragedItems) {
-            if (arrayOfNamesDoneItems.length == 0) {
-              storagedItem.done = false;
-            } else {
-              for (let i = 0; i < arrayOfNamesDoneItems.length; i++) {
-                if (storagedItem.name == arrayOfNamesDoneItems[i]) {
-                  storagedItem.done = true;
-                  break;
-                }
-                else {
-                  storagedItem.done = false;
-                }
-              }
-            }
-            arrayFiltredDoneItems.push(storagedItem);
-          }
-
-          localStorage.setItem(key, JSON.stringify(arrayFiltredDoneItems));
-          arrayFiltredDoneItems = [];//нужно обнулять???
-        });
-
+        todoItem.doneButton.addEventListener('click', getArrayFiltredItems(key));//обработчик Готово для списка дел из LocalStorage
 
         todoItem.deleteButton.addEventListener('click', function () { //обработчик Удалить для списка дел из LocalStorage
           if (confirm('Вы уверены?')) {
-            let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
-            let arrayFiltredDeleteItems = arrayStoragedItems.filter(function (e) {
-              return e.name != todoItem.item.textContent.replace('ГотовоУдалить', '');
-            });
-            localStorage.setItem(key, JSON.stringify(arrayFiltredDeleteItems));
-            todoItem.item.remove();
+            removeDeletedItems(key)
           }
         });
       }
@@ -173,51 +179,16 @@
       };
 
       //обработчик события нажания Готово после создания нового дела
-      todoItem.doneButton.addEventListener('click', function () {
-        let arrayFiltredDoneItems = [];
-        let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
-        console.log(arrayStoragedItems);
-
-        todoItem.item.classList.toggle('list-group-item-success');
-        let listDoneItems = document.querySelectorAll('li.list-group-item-success'); //Nodelist li
-
-        var arrayOfNamesDoneItems = [].map.call(listDoneItems, function (obj) { //проходимся по массиву объектов, собранных с помощью querySelectorAll
-          return obj.textContent.replace('ГотовоУдалить', ''); //и получаем массив дел без содержания "ГотовоУдалить"
-        });
-
-        for (let storagedItem of arrayStoragedItems) {
-          if (arrayOfNamesDoneItems.length == 0) {
-            storagedItem.done = false;
-          } else {
-            for (let i = 0; i < arrayOfNamesDoneItems.length; i++) {
-              if (storagedItem.name == arrayOfNamesDoneItems[i]) {
-                storagedItem.done = true;
-                break;
-              }
-              else {
-                storagedItem.done = false;
-              }
-            }
-          }
-          arrayFiltredDoneItems.push(storagedItem);
-        }
-
-        localStorage.setItem(key, JSON.stringify(arrayFiltredDoneItems));
-        arrayFiltredDoneItems = [];//нужно обнулять???
-      });
+      todoItem.doneButton.addEventListener('click', getArrayFiltredItems(key));
 
       //обработчик события нажания Удалить после создания нового дела
       todoItem.deleteButton.addEventListener('click', function () {
         if (confirm('Вы уверены?')) {
-          let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
-          let arrayFiltredDeleteItems = arrayStoragedItems.filter(function (e) {
-            return e.name != todoItem.item.textContent.replace('ГотовоУдалить', '');
-          });
-          localStorage.setItem(key, JSON.stringify(arrayFiltredDeleteItems));
-          todoItem.item.remove();
+          removeDeletedItems(key);
         }
       });
 
+      console.log(todoItemForm.input.value);
       todoItemForm.input.value = '';//обнуляем значение в поле, чтобы не пришлось стирать его вручную
       todoItemForm.button.setAttribute('disabled', true);//HW8 делаем поле неактивным до ввода текста
     });
