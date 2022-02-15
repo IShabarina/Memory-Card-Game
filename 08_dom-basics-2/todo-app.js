@@ -76,14 +76,31 @@
     };
   }
 
-  function getArrayFiltredItems(key, todoItem) {
+  //обновляем и возвращаем обновленный массив дел LocalStorage
+  function getArrayLocalStoragedObjs(keyArr, todoItemForm) {
+    let arrayLocalStoragedObjs = JSON.parse(localStorage.getItem(keyArr));
+    if (arrayLocalStoragedObjs == null) arrayLocalStoragedObjs = [];
+    let itemName = todoItemForm.input.value;
+    let itemDone = false;
+    let itemObj = {
+      "name": itemName,
+      "done": itemDone
+    };
+    localStorage.setItem("itemObj", JSON.stringify(itemObj));
+    arrayLocalStoragedObjs.push(itemObj);
+    localStorage.setItem(keyArr, JSON.stringify(arrayLocalStoragedObjs));
+    return arrayLocalStoragedObjs;
+  };
+
+  //обновляем статус дела в массиве дел LocalStorage и класс кнопки дела в DOM
+  function updateDoneItems(key, todoItem) {
     let arrayFiltredDoneItems = [];
     let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
 
     todoItem.item.classList.toggle('list-group-item-success');
     let listDoneItems = document.querySelectorAll('li.list-group-item-success');
     var arrayOfNamesDoneItems = [].map.call(listDoneItems, function (obj) { //проходимся по массиву объектов, собранных с помощью querySelectorAll
-      return obj.textContent.replace('ГотовоУдалить', ''); //и получаем массив Дел без содержания "ГотовоУдалить"
+      return obj.textContent.replace('ГотовоУдалить', ''); //и получаем массив готовых Дел (без содержания в строке "ГотовоУдалить")
     });
 
     for (let storagedItem of arrayStoragedItems) {
@@ -101,13 +118,13 @@
         }
       }
       arrayFiltredDoneItems.push(storagedItem);
-      console.log(arrayFiltredDoneItems);
     }
 
     localStorage.setItem(key, JSON.stringify(arrayFiltredDoneItems));
     arrayFiltredDoneItems = [];
   };
 
+  //удаляем завершенное дело из массива LocalStorage и удаляем из DOM
   function removeDeletedItems(key, todoItem) {
     let arrayStoragedItems = JSON.parse(localStorage.getItem(key));
     let arrayFiltredDeleteItems = arrayStoragedItems.filter(function (e) {
@@ -127,7 +144,7 @@
     container.append(todoItemForm.form);
     container.append(todoList);
 
-    if (key == undefined) { //если key массива LocalStorage не задан 3-им аргуметом, присваиваем key равное title
+    if (key == undefined) { //если key массива LocalStorage не задан 3-им аргументом, присваиваем ему значение равное title
       key = title;
     };
 
@@ -135,16 +152,18 @@
       todoItemForm.button.removeAttribute('disabled');
     });
 
-    let arrayStoragedItems = JSON.parse(localStorage.getItem(key)); //null
+    let arrayStoragedItems = JSON.parse(localStorage.getItem(key)); //проверяем содержимое Local Storage, null при первом выполнении фун-ии
 
     if (arrayStoragedItems != null) { //если данные в LocalStorage существуют создаем Дела в DOM
       for (let j = 0; j < arrayStoragedItems.length; ++j) {
         let todoItem = createTodoItem(arrayStoragedItems[j].name, arrayStoragedItems[j].done);
         todoList.append(todoItem.item);
 
-        todoItem.doneButton.addEventListener('click', () => getArrayFiltredItems(key, todoItem));//обработчик Готово для списка дел из LocalStorage
+        //обработчик события нажания Готово для списка дел из LocalStorage
+        todoItem.doneButton.addEventListener('click', () => updateDoneItems(key, todoItem));
 
-        todoItem.deleteButton.addEventListener('click', function () { //обработчик Удалить для списка дел из LocalStorage
+        //обработчик события нажания Удалить для списка дел из LocalStorage
+        todoItem.deleteButton.addEventListener('click', function () {
           if (confirm('Вы уверены?')) {
             removeDeletedItems(key, todoItem);
           }
@@ -160,26 +179,10 @@
       let todoItem = createTodoItem(todoItemForm.input.value);//создаем и добавляем в список Дело с названием из поля для ввода
       todoList.append(todoItem.item);
 
-      arrayStoragedItems = getArrayLocalStoragedObjs(key); //добавляем созданное новое дело в массив объектов LocalStorage
-
-      function getArrayLocalStoragedObjs(keyArr) {
-        let arrayLocalStoragedObjs = JSON.parse(localStorage.getItem(key));
-        if (arrayLocalStoragedObjs == null) arrayLocalStoragedObjs = [];
-        let itemName = todoItemForm.input.value;
-        let itemDone = false;
-        let itemObj = {
-          "name": itemName,
-          "done": itemDone
-        };
-        localStorage.setItem("itemObj", JSON.stringify(itemObj));
-        arrayLocalStoragedObjs.push(itemObj);
-        localStorage.setItem(keyArr, JSON.stringify(arrayLocalStoragedObjs));
-        console.log(arrayLocalStoragedObjs);
-        return arrayLocalStoragedObjs;
-      };
+      arrayStoragedItems = getArrayLocalStoragedObjs(key, todoItemForm); //обновляем переменную присваивая обновленный массив дел из LocalStorage после добавления нового дела
 
       //обработчик события нажания Готово после создания нового дела
-      todoItem.doneButton.addEventListener('click', () => getArrayFiltredItems(key, todoItem));
+      todoItem.doneButton.addEventListener('click', () => updateDoneItems(key, todoItem));
 
       //обработчик события нажания Удалить после создания нового дела
       todoItem.deleteButton.addEventListener('click', function () {
@@ -188,11 +191,9 @@
         }
       });
 
-      console.log(todoItemForm.input.value);
       todoItemForm.input.value = '';//обнуляем значение в поле, чтобы не пришлось стирать его вручную
       todoItemForm.button.setAttribute('disabled', true);//HW8 делаем поле неактивным до ввода текста
     });
-
   }
 
   window.createTodoApp = createTodoApp;
